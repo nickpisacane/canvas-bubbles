@@ -1,4 +1,7 @@
-import EventEmitter from './EventEmitter'
+import { EventEmitter } from 'events'
+import { polyfill } from 'raf'
+
+polyfill()
 
 export default class World extends EventEmitter {
   constructor (canvas, options = {}) {
@@ -39,9 +42,19 @@ export default class World extends EventEmitter {
     }
   }
 
+  clear () {
+    this.ctx.clearRect(0, 0, this.width, this.height)
+  }
+
+  destroy () {
+    this.stop()
+    this.clear()
+    this.bodies = []
+  }
+
   draw () {
     this.emit('draw:start')
-    this.ctx.clearRect(0, 0, this.width, this.height)
+    this.clear()
     this.bodies.forEach(body => body.draw())
     this.emit('draw:end')
   }
@@ -67,7 +80,7 @@ export default class World extends EventEmitter {
 
   stop () {
     this.active = false
-    window.cancelAnimationFrame(this._id)
+    window.cancelAnimationFram(this._id)
   }
 
   resize () {

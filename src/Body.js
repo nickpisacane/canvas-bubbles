@@ -1,4 +1,4 @@
-import EventEmitter from './EventEmitter'
+import { EventEmitter } from 'events'
 import RGBA from './RGBA'
 
 export default class Body extends EventEmitter {
@@ -51,9 +51,9 @@ export default class Body extends EventEmitter {
         throw new Error('Body: _draw must be implemented!')
       }
       if (this._shouldDraw()) {
-        this.on('draw:start', this.world.ctx)
+        this.emit('draw:start', this.world.ctx)
         this._draw(this.world.ctx)
-        this.on('draw:end', this.world.ctx)
+        this.emit('draw:end', this.world.ctx)
       }
     }
   }

@@ -2,55 +2,96 @@ import Circle from './Circle'
 
 export default class Bubbles {
   constructor (world, options = {}) {
-    this.density = options.density || 1
-    this.colors = options.colors
-    this.rmin = options.rmin || 1
-    this.rmax = options.rmax || 50
-    this.vmin = options.vmin || 0.1
-    this.vmax = options.vmax || 1
-    this.omin = options.omin || 0.0001
-    this.omax = options.omax || 0.001
+    Object.assign(this, {
+      density: 1,
+      densityArea: 1000,
+      colors: ['#fff'],
+      minRadius: 1,
+      maxRadius: 50,
+      minVelocity: 0.1,
+      maxVelocity: 1,
+      minOpacityVelocity: 0.0001,
+      maxOpacityVelocity: 0.001,
+      initialOpacity: 0.8,
+      maxDepth: 50,
+      autosize: true
+    }, options)
 
+    this.count = 0
     this.world = world
-    this.world.start()
-    this.populate()
-
-    setInterval(() => {
-      this.world.once('draw:end', () => {
-        this.populate()
-      })
-    }, 5000)
-
-    this.world.on('draw:end', () => {
-      this.move()
-    })
+    this._handleDrawEnd = this._handleDrawEnd.bind(this)
+    this._handleResize = this._handleResize.bind(this)
+    this.setup()
   }
 
-  move () {
+  setup () {
+    this.count = this._getCount()
+    this._populate(this.count)
+    this.world.on('draw:end', this._handleDrawEnd)
+    if (this.autosize) {
+      window.addEventListener('resize', this._handleResize)
+    }
+  }
+
+  destroy() {
+
+  }
+
+  _getCount () {
+    const { width, height } = this.world
+    return Math.floor((width * height / 1000) * this.density)
+  }
+
+  _move () {
     this.world.bodies.forEach(body => {
       body.y -= body._velocity
-      body.opacity -= body._opacityDelta
-      if (body.opacity < 0 || body.y + body.radius * 2 < 0) {
-        this.world.remove(body)
+      body.opacity -= body._opacityVelocity
+      if (body.opacity < 0 || body.y + body.radius < 0 ||
+          body.x + body.radis < 0 || body.x + body.radius > this.world.width) {
+        this._resetCircle(body)
       }
     })
   }
 
-  populate () {
-    const count = this.density * (this.world.width / 100)
+  _populate (count) {
+    if (count < 0) {
+      this.world.bodies.splice(this.world.bodies.length + count)
+      return
+    }
 
     for (let i = 0; i < count; i++) {
-      const circle = new Circle({
-        x: randomInt(0, this.world.width),
-        y: randomInt(200 + this.world.height, this.rmax + this.world.height),
-        color: this.colors[Math.floor(Math.random() * this.colors.length)],
-        opacity: 0.8,
-        radius: randomInt(this.rmin, this.rmax)
-      })
-      circle._velocity = randomFloat(this.vmin, this.vmax)
-      circle._opacityDelta = randomFloat(this.omin, this.omax)
+      const circle = new Circle()
+      this._resetCircle(circle)
       this.world.add(circle)
     }
+  }
+
+  _resetCircle (circle) {
+    circle.x = randomInt(0, this.world.width)
+    circle.y = randomInt(
+      this.maxRadius + this.world.height,
+      this.maxDepth / 100 * this.world.height + this.world.height
+    )
+    circle.color = this.colors[Math.floor(Math.random() * this.colors.length)]
+    circle.opacity = this.initialOpacity
+    circle.radius = randomInt(this.minRadius, this.maxRadius)
+    circle._velocity = randomFloat(this.minVelocity, this.maxVelocity)
+    circle._opacityVelocity = randomFloat(
+      this.minOpacityVelocity,
+      this.maxOpacityVelocity
+    )
+  }
+
+  _handleDrawEnd () {
+    this._move()
+  }
+
+  _handleResize () {
+    const oldCount = this.count
+    this.world.resize()
+    const count = this.count = this._getCount()
+    const dc = count - oldCount
+    this._populate(dc)
   }
 }
 
