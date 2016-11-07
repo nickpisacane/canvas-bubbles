@@ -2,10 +2,13 @@
   "name": "canvas-bubbles",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-lib": "./node_modules/.bin/babel src --out-dir lib",
+    "browserify": "npm run build-lib && cd lib && ../node_modules/.bin/browserify $(ls) -o ../dist/canvas-bubbles.js -e ./browser.js",
+    "build-dist": "npm run browserify && ./node_modules/.bin/uglifyjs ./dist/canvas-bubbles.js -o ./dist/canvas-bubbles.min.js",
+    "build-demo": "npm run build-dist && cp ./dist/canvas-bubbles.js ./demo",
     "lint": "./node_modules/.bin/standard src/**/*.js"
   },
   "keywords": [],
@@ -14,6 +17,10 @@
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-plugin-transform-object-assign": "^6.8.0",
-    "babel-preset-es2015": "^6.18.0"
+    "babel-preset-es2015": "^6.18.0",
+    "browserify": "^13.1.1"
+  },
+  "dependencies": {
+    "raf": "^3.3.0"
   }
 }
