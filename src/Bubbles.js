@@ -29,12 +29,16 @@ export default class Bubbles {
     this._populate(this.count)
     this.world.on('draw:end', this._handleDrawEnd)
     if (this.autosize) {
-      window.addEventListener('resize', this._handleResize)
+      window.addEventListener('resize', this._handleResize, false)
     }
   }
 
-  destroy() {
-
+  destroy () {
+    this.world.off('draw:end', this._handleDrawEnd)
+    if (this.autosize) {
+      window.removeEventListener('resize', this._handleResize, false)
+    }
+    this.world.destroy()
   }
 
   _getCount () {
