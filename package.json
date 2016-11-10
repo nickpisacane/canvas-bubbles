@@ -10,7 +10,8 @@
     "build-dist": "npm run browserify && ./node_modules/.bin/uglifyjs ./dist/canvas-bubbles.js -o ./dist/canvas-bubbles.min.js",
     "build-docs": "npm run build-dist && cp ./dist/canvas-bubbles.js ./docs",
     "serve-docs": "./node_modules/.bin/serve docs",
-    "lint": "./node_modules/.bin/standard src/**/*.js"
+    "lint": "./node_modules/.bin/standard src/**/*.js",
+    "dev": "node ./scripts/dev.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,7 @@
     "serve": "^1.4.0"
   },
   "dependencies": {
+    "lodash.debounce": "^4.0.8",
     "raf": "^3.3.0"
   }
 }
