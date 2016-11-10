@@ -23,14 +23,6 @@ export default class World extends EventEmitter {
       height: {
         get: () => this.canvas.height,
         enumerable: true
-      },
-      halfWidth: {
-        get: () => this.width / 2,
-        enumerable: true
-      },
-      halfHeight: {
-        get: () => this.height / 2,
-        enumerable: true
       }
     })
   }
