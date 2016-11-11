@@ -1,5 +1,6 @@
 import debounce from 'lodash.debounce'
-import Circle from './Circle'
+import Bubble from './Bubble'
+import RGBA from './RGBA'
 
 export default class Bubbles {
   constructor (world, options = {}) {
@@ -29,23 +30,29 @@ export default class Bubbles {
       window.removeEventListener('resize', this._handleResize, false)
     }
     this.world.destroy()
+    RGBA.clearCache()
   }
 
   update (options = {}) {
-    this._setOptions(options)
+    this.options = Object.assign({}, this.options, options)
     this.world.once('draw:end', () => {
-      this.world.bodies.forEach(circle => {
+      this.world.bodies.forEach(bubble => {
         if (options.colors) {
-          this._resetCircleColor(circle)
+          this._resetBubbleColor(bubble)
         }
         if (options.minVelocity || options.maxVelocity) {
-          this._resetCircleVelocity(circle)
+          this._resetBubbleVelocity(bubble)
         }
         if (options.minOpacityVelocity || options.maxOpacityVelocity) {
-          this._resetCircleOpacityVelocity(circle)
+          this._resetBubbleOpacityVelocity(bubble)
         }
         if (options.minRadius || options.maxRadius) {
-          this._resetCircleRadius(circle)
+          this._resetBubbleRadius(bubble)
+        }
+        if (options.density) {
+          const oldCount = this.count
+          this.count = this._getCount()
+          this._populate(this.count - oldCount)
         }
       })
     })
@@ -57,7 +64,7 @@ export default class Bubbles {
       densityArea: 1000,
       colors: ['#fff'],
       minRadius: 1,
-      maxRadius: 50,
+      maxRadius: 25,
       minVelocity: 0.1,
       maxVelocity: 1,
       minOpacityVelocity: 0.0001,
@@ -75,12 +82,12 @@ export default class Bubbles {
   }
 
   _move () {
-    this.world.bodies.forEach(body => {
-      body.y -= body._velocity
-      body.opacity -= body._opacityVelocity
-      if (body.opacity < 0 || body.y + body.radius < 0 ||
-          body.x + body.radis < 0 || body.x + body.radius > this.world.width) {
-        this._resetCircle(body)
+    this.world.bodies.forEach(bubble => {
+      bubble.y -= bubble.velocity
+      bubble.opacity -= bubble.opacityVelocity
+      if (bubble.opacity < 0 || bubble.y + bubble.radius < 0 ||
+          bubble.x + bubble.radis < 0 || bubble.x + bubble.radius > this.world.width) {
+        this._resetBubble(bubble)
       }
     })
   }
@@ -92,50 +99,50 @@ export default class Bubbles {
     }
 
     for (let i = 0; i < count; i++) {
-      const circle = new Circle()
-      this._resetCircle(circle)
-      this.world.add(circle)
+      const bubble = new Bubble()
+      this._resetBubble(bubble)
+      this.world.add(bubble)
     }
   }
 
-  _resetCirclePosition (circle) {
-    circle.x = randomInt(0, this.world.width)
-    circle.y = randomInt(
+  _resetBubblePosition (bubble) {
+    bubble.x = randomInt(0, this.world.width)
+    bubble.y = randomInt(
       this.options.maxRadius + this.world.height,
       this.options.maxDepth / 100 * this.world.height + this.world.height
     )
-    circle.opacity = this.options.initialOpacity
+    bubble.opacity = this.options.initialOpacity
   }
 
-  _resetCircleOpacityVelocity (circle) {
-    circle._opacityVelocity = randomFloat(
+  _resetBubbleOpacityVelocity (bubble) {
+    bubble.opacityVelocity = randomFloat(
       this.options.minOpacityVelocity,
       this.options.maxOpacityVelocity
     )
   }
 
-  _resetCircleColor (circle) {
+  _resetBubbleColor (bubble) {
     const index = Math.floor(Math.random() * this.options.colors.length)
-    circle.color = this.options.colors[index]
+    bubble.color = this.options.colors[index]
   }
 
-  _resetCircleRadius (circle) {
-    circle.radius = randomInt(this.options.minRadius, this.options.maxRadius)
+  _resetBubbleRadius (bubble) {
+    bubble.radius = randomInt(this.options.minRadius, this.options.maxRadius)
   }
 
-  _resetCircleVelocity (circle) {
-    circle._velocity = randomFloat(
+  _resetBubbleVelocity (bubble) {
+    bubble.velocity = randomFloat(
       this.options.minVelocity,
       this.options.maxVelocity
     )
   }
 
-  _resetCircle (circle) {
-    this._resetCirclePosition(circle)
-    this._resetCircleColor(circle)
-    this._resetCircleOpacityVelocity(circle)
-    this._resetCircleRadius(circle)
-    this._resetCircleVelocity(circle)
+  _resetBubble (bubble) {
+    this._resetBubblePosition(bubble)
+    this._resetBubbleColor(bubble)
+    this._resetBubbleOpacityVelocity(bubble)
+    this._resetBubbleRadius(bubble)
+    this._resetBubbleVelocity(bubble)
   }
 
   _handleDrawEnd () {
