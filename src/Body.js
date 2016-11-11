@@ -1,9 +1,7 @@
-import { EventEmitter } from 'events'
 import RGBA from './RGBA'
 
-export default class Body extends EventEmitter {
+export default class Body {
   constructor (options = {}) {
-    super()
     this.x = options.x
     this.y = options.y
     this._color = options.color || '#ffffff'
@@ -32,12 +30,10 @@ export default class Body extends EventEmitter {
   }
 
   setWorld (world) {
-    this.emit('world', world)
     this.world = world
   }
 
   removeWorld () {
-    this.emit('removeWorld', this.world)
     this.world = null
   }
 
@@ -46,15 +42,8 @@ export default class Body extends EventEmitter {
   }
 
   draw () {
-    if (this.world) {
-      if (typeof this._draw !== 'function') {
-        throw new Error('Body: _draw must be implemented!')
-      }
-      if (this._shouldDraw()) {
-        this.emit('draw:start', this.world.ctx)
-        this._draw(this.world.ctx)
-        this.emit('draw:end', this.world.ctx)
-      }
+    if (this.world && this._shouldDraw()) {
+      this._draw(this.world.ctx)
     }
   }
 }
