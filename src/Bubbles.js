@@ -1,26 +1,16 @@
+import debounce from 'lodash.debounce'
 import Circle from './Circle'
 
 export default class Bubbles {
   constructor (world, options = {}) {
-    Object.assign(this, {
-      density: 1,
-      densityArea: 1000,
-      colors: ['#fff'],
-      minRadius: 1,
-      maxRadius: 50,
-      minVelocity: 0.1,
-      maxVelocity: 1,
-      minOpacityVelocity: 0.0001,
-      maxOpacityVelocity: 0.001,
-      initialOpacity: 0.8,
-      maxDepth: 50,
-      autosize: true
-    }, options)
-
+    this._setOptions(options)
     this.count = 0
     this.world = world
     this._handleDrawEnd = this._handleDrawEnd.bind(this)
-    this._handleResize = this._handleResize.bind(this)
+    this._handleResize = debounce(
+      this._handleResize.bind(this),
+      this.options.debounce
+    )
     this.setup()
   }
 
@@ -28,7 +18,7 @@ export default class Bubbles {
     this.count = this._getCount()
     this._populate(this.count)
     this.world.on('draw:end', this._handleDrawEnd)
-    if (this.autosize) {
+    if (this.options.autosize) {
       window.addEventListener('resize', this._handleResize, false)
     }
   }
@@ -41,9 +31,47 @@ export default class Bubbles {
     this.world.destroy()
   }
 
+  update (options = {}) {
+    this._setOptions(options)
+    this.world.once('draw:end', () => {
+      this.world.bodies.forEach(circle => {
+        if (options.colors) {
+          this._resetCircleColor(circle)
+        }
+        if (options.minVelocity || options.maxVelocity) {
+          this._resetCircleVelocity(circle)
+        }
+        if (options.minOpacityVelocity || options.maxOpacityVelocity) {
+          this._resetCircleOpacityVelocity(circle)
+        }
+        if (options.minRadius || options.maxRadius) {
+          this._resetCircleRadius(circle)
+        }
+      })
+    })
+  }
+
+  _setOptions (options = {}) {
+    this.options = Object.assign({
+      density: 1,
+      densityArea: 1000,
+      colors: ['#fff'],
+      minRadius: 1,
+      maxRadius: 50,
+      minVelocity: 0.1,
+      maxVelocity: 1,
+      minOpacityVelocity: 0.0001,
+      maxOpacityVelocity: 0.001,
+      initialOpacity: 0.8,
+      maxDepth: 50,
+      autosize: true,
+      debounce: 300
+    }, options)
+  }
+
   _getCount () {
     const { width, height } = this.world
-    return Math.floor((width * height / 1000) * this.density)
+    return Math.floor((width * height / 1000) * this.options.density)
   }
 
   _move () {
@@ -70,20 +98,44 @@ export default class Bubbles {
     }
   }
 
-  _resetCircle (circle) {
+  _resetCirclePosition (circle) {
     circle.x = randomInt(0, this.world.width)
     circle.y = randomInt(
-      this.maxRadius + this.world.height,
-      this.maxDepth / 100 * this.world.height + this.world.height
+      this.options.maxRadius + this.world.height,
+      this.options.maxDepth / 100 * this.world.height + this.world.height
     )
-    circle.color = this.colors[Math.floor(Math.random() * this.colors.length)]
-    circle.opacity = this.initialOpacity
-    circle.radius = randomInt(this.minRadius, this.maxRadius)
-    circle._velocity = randomFloat(this.minVelocity, this.maxVelocity)
+    circle.opacity = this.options.initialOpacity
+  }
+
+  _resetCircleOpacityVelocity (circle) {
     circle._opacityVelocity = randomFloat(
-      this.minOpacityVelocity,
-      this.maxOpacityVelocity
+      this.options.minOpacityVelocity,
+      this.options.maxOpacityVelocity
     )
+  }
+
+  _resetCircleColor (circle) {
+    const index = Math.floor(Math.random() * this.options.colors.length)
+    circle.color = this.options.colors[index]
+  }
+
+  _resetCircleRadius (circle) {
+    circle.radius = randomInt(this.options.minRadius, this.options.maxRadius)
+  }
+
+  _resetCircleVelocity (circle) {
+    circle._velocity = randomFloat(
+      this.options.minVelocity,
+      this.options.maxVelocity
+    )
+  }
+
+  _resetCircle (circle) {
+    this._resetCirclePosition(circle)
+    this._resetCircleColor(circle)
+    this._resetCircleOpacityVelocity(circle)
+    this._resetCircleRadius(circle)
+    this._resetCircleVelocity(circle)
   }
 
   _handleDrawEnd () {
