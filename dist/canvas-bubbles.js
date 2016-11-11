@@ -7,8 +7,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _events = require('events');
-
 var _RGBA = require('./RGBA');
 
 var _RGBA2 = _interopRequireDefault(_RGBA);
@@ -17,28 +15,22 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Body = function (_EventEmitter) {
-  _inherits(Body, _EventEmitter);
-
+var Body = function () {
   function Body() {
+    var _this = this;
+
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     _classCallCheck(this, Body);
 
-    var _this = _possibleConstructorReturn(this, (Body.__proto__ || Object.getPrototypeOf(Body)).call(this));
+    this.x = options.x;
+    this.y = options.y;
+    this._color = options.color || '#ffffff';
+    this._opacity = options.opacity || 1;
+    this.world = null;
+    this.rgba = new _RGBA2.default(this._color, this._opacity);
 
-    _this.x = options.x;
-    _this.y = options.y;
-    _this._color = options.color || '#ffffff';
-    _this._opacity = options.opacity || 1;
-    _this.world = null;
-    _this.rgba = new _RGBA2.default(_this._color, _this._opacity);
-
-    Object.defineProperties(_this, {
+    Object.defineProperties(this, {
       color: {
         get: function get() {
           return _this._color;
@@ -60,19 +52,16 @@ var Body = function (_EventEmitter) {
         enumerable: true
       }
     });
-    return _this;
   }
 
   _createClass(Body, [{
     key: 'setWorld',
     value: function setWorld(world) {
-      this.emit('world', world);
       this.world = world;
     }
   }, {
     key: 'removeWorld',
     value: function removeWorld() {
-      this.emit('removeWorld', this.world);
       this.world = null;
     }
   }, {
@@ -83,24 +72,81 @@ var Body = function (_EventEmitter) {
   }, {
     key: 'draw',
     value: function draw() {
-      if (this.world) {
-        if (typeof this._draw !== 'function') {
-          throw new Error('Body: _draw must be implemented!');
-        }
-        if (this._shouldDraw()) {
-          this.emit('draw:start', this.world.ctx);
-          this._draw(this.world.ctx);
-          this.emit('draw:end', this.world.ctx);
-        }
+      if (this.world && this._shouldDraw()) {
+        this._draw(this.world.ctx);
       }
     }
   }]);
 
   return Body;
-}(_events.EventEmitter);
+}();
 
 exports.default = Body;
-},{"./RGBA":5,"events":9}],2:[function(require,module,exports){
+},{"./RGBA":6}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _Body2 = require('./Body');
+
+var _Body3 = _interopRequireDefault(_Body2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Bubble = function (_Body) {
+  _inherits(Bubble, _Body);
+
+  function Bubble() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, Bubble);
+
+    var _this = _possibleConstructorReturn(this, (Bubble.__proto__ || Object.getPrototypeOf(Bubble)).call(this, options));
+
+    _this.radius = options.radius;
+    _this.velocity = 0;
+    _this.opacityVelocity = 0;
+    return _this;
+  }
+
+  _createClass(Bubble, [{
+    key: '_shouldDraw',
+    value: function _shouldDraw() {
+      var x = this.x,
+          y = this.y,
+          radius = this.radius,
+          _world = this.world,
+          width = _world.width,
+          height = _world.height;
+
+      return x + radius > 0 && x - radius < width && y + radius > 0 && y - radius < height;
+    }
+  }, {
+    key: '_draw',
+    value: function _draw(ctx) {
+      ctx.beginPath();
+      ctx.fillStyle = this.rgba.toString();
+      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+      ctx.fill();
+      ctx.closePath();
+    }
+  }]);
+
+  return Bubble;
+}(_Body3.default);
+
+exports.default = Bubble;
+},{"./Body":1}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -111,9 +157,13 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Circle = require('./Circle');
+var _lodash = require('lodash.debounce');
 
-var _Circle2 = _interopRequireDefault(_Circle);
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _Bubble = require('./Bubble');
+
+var _Bubble2 = _interopRequireDefault(_Bubble);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -125,25 +175,11 @@ var Bubbles = function () {
 
     _classCallCheck(this, Bubbles);
 
-    _extends(this, {
-      density: 1,
-      densityArea: 1000,
-      colors: ['#fff'],
-      minRadius: 1,
-      maxRadius: 50,
-      minVelocity: 0.1,
-      maxVelocity: 1,
-      minOpacityVelocity: 0.0001,
-      maxOpacityVelocity: 0.001,
-      initialOpacity: 0.8,
-      maxDepth: 50,
-      autosize: true
-    }, options);
-
+    this._setOptions(options);
     this.count = 0;
     this.world = world;
     this._handleDrawEnd = this._handleDrawEnd.bind(this);
-    this._handleResize = this._handleResize.bind(this);
+    this._handleResize = (0, _lodash2.default)(this._handleResize.bind(this), this.options.debounce);
     this.setup();
   }
 
@@ -153,13 +189,70 @@ var Bubbles = function () {
       this.count = this._getCount();
       this._populate(this.count);
       this.world.on('draw:end', this._handleDrawEnd);
-      if (this.autosize) {
-        window.addEventListener('resize', this._handleResize);
+      if (this.options.autosize) {
+        window.addEventListener('resize', this._handleResize, false);
       }
     }
   }, {
     key: 'destroy',
-    value: function destroy() {}
+    value: function destroy() {
+      this.world.off('draw:end', this._handleDrawEnd);
+      if (this.autosize) {
+        window.removeEventListener('resize', this._handleResize, false);
+      }
+      this.world.destroy();
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      var _this = this;
+
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      this.options = _extends({}, this.options, options);
+      this.world.once('draw:end', function () {
+        _this.world.bodies.forEach(function (bubble) {
+          if (options.colors) {
+            _this._resetBubbleColor(bubble);
+          }
+          if (options.minVelocity || options.maxVelocity) {
+            _this._resetBubbleVelocity(bubble);
+          }
+          if (options.minOpacityVelocity || options.maxOpacityVelocity) {
+            _this._resetBubbleOpacityVelocity(bubble);
+          }
+          if (options.minRadius || options.maxRadius) {
+            _this._resetBubbleRadius(bubble);
+          }
+          if (options.density) {
+            var oldCount = _this.count;
+            _this.count = _this._getCount();
+            _this._populate(_this.count - oldCount);
+          }
+        });
+      });
+    }
+  }, {
+    key: '_setOptions',
+    value: function _setOptions() {
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      this.options = _extends({
+        density: 1,
+        densityArea: 1000,
+        colors: ['#fff'],
+        minRadius: 1,
+        maxRadius: 25,
+        minVelocity: 0.1,
+        maxVelocity: 1,
+        minOpacityVelocity: 0.0001,
+        maxOpacityVelocity: 0.001,
+        initialOpacity: 0.8,
+        maxDepth: 50,
+        autosize: true,
+        debounce: 300
+      }, options);
+    }
   }, {
     key: '_getCount',
     value: function _getCount() {
@@ -167,18 +260,18 @@ var Bubbles = function () {
           width = _world.width,
           height = _world.height;
 
-      return Math.floor(width * height / 1000 * this.density);
+      return Math.floor(width * height / 1000 * this.options.density);
     }
   }, {
     key: '_move',
     value: function _move() {
-      var _this = this;
+      var _this2 = this;
 
-      this.world.bodies.forEach(function (body) {
-        body.y -= body._velocity;
-        body.opacity -= body._opacityVelocity;
-        if (body.opacity < 0 || body.y + body.radius < 0 || body.x + body.radis < 0 || body.x + body.radius > _this.world.width) {
-          _this._resetCircle(body);
+      this.world.bodies.forEach(function (bubble) {
+        bubble.y -= bubble.velocity;
+        bubble.opacity -= bubble.opacityVelocity;
+        if (bubble.opacity < 0 || bubble.y + bubble.radius < 0 || bubble.x + bubble.radis < 0 || bubble.x + bubble.radius > _this2.world.width) {
+          _this2._resetBubble(bubble);
         }
       });
     }
@@ -191,21 +284,47 @@ var Bubbles = function () {
       }
 
       for (var i = 0; i < count; i++) {
-        var circle = new _Circle2.default();
-        this._resetCircle(circle);
-        this.world.add(circle);
+        var bubble = new _Bubble2.default();
+        this._resetBubble(bubble);
+        this.world.add(bubble);
       }
     }
   }, {
-    key: '_resetCircle',
-    value: function _resetCircle(circle) {
-      circle.x = randomInt(0, this.world.width);
-      circle.y = randomInt(this.maxRadius + this.world.height, this.maxDepth / 100 * this.world.height + this.world.height);
-      circle.color = this.colors[Math.floor(Math.random() * this.colors.length)];
-      circle.opacity = this.initialOpacity;
-      circle.radius = randomInt(this.minRadius, this.maxRadius);
-      circle._velocity = randomFloat(this.minVelocity, this.maxVelocity);
-      circle._opacityVelocity = randomFloat(this.minOpacityVelocity, this.maxOpacityVelocity);
+    key: '_resetBubblePosition',
+    value: function _resetBubblePosition(bubble) {
+      bubble.x = randomInt(0, this.world.width);
+      bubble.y = randomInt(this.options.maxRadius + this.world.height, this.options.maxDepth / 100 * this.world.height + this.world.height);
+      bubble.opacity = this.options.initialOpacity;
+    }
+  }, {
+    key: '_resetBubbleOpacityVelocity',
+    value: function _resetBubbleOpacityVelocity(bubble) {
+      bubble.opacityVelocity = randomFloat(this.options.minOpacityVelocity, this.options.maxOpacityVelocity);
+    }
+  }, {
+    key: '_resetBubbleColor',
+    value: function _resetBubbleColor(bubble) {
+      var index = Math.floor(Math.random() * this.options.colors.length);
+      bubble.color = this.options.colors[index];
+    }
+  }, {
+    key: '_resetBubbleRadius',
+    value: function _resetBubbleRadius(bubble) {
+      bubble.radius = randomInt(this.options.minRadius, this.options.maxRadius);
+    }
+  }, {
+    key: '_resetBubbleVelocity',
+    value: function _resetBubbleVelocity(bubble) {
+      bubble.velocity = randomFloat(this.options.minVelocity, this.options.maxVelocity);
+    }
+  }, {
+    key: '_resetBubble',
+    value: function _resetBubble(bubble) {
+      this._resetBubblePosition(bubble);
+      this._resetBubbleColor(bubble);
+      this._resetBubbleOpacityVelocity(bubble);
+      this._resetBubbleRadius(bubble);
+      this._resetBubbleVelocity(bubble);
     }
   }, {
     key: '_handleDrawEnd',
@@ -236,69 +355,9 @@ function randomFloat(min, max) {
 function randomInt(min, max) {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
-},{"./Circle":3}],3:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _Body2 = require('./Body');
-
-var _Body3 = _interopRequireDefault(_Body2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Circle = function (_Body) {
-  _inherits(Circle, _Body);
-
-  function Circle() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-    _classCallCheck(this, Circle);
-
-    var _this = _possibleConstructorReturn(this, (Circle.__proto__ || Object.getPrototypeOf(Circle)).call(this, options));
-
-    _this.radius = options.radius;
-    return _this;
-  }
-
-  _createClass(Circle, [{
-    key: '_shouldDraw',
-    value: function _shouldDraw() {
-      var x = this.x,
-          y = this.y,
-          radius = this.radius,
-          _world = this.world,
-          width = _world.width,
-          height = _world.height;
-
-      return x + radius > 0 && x - radius < width && y + radius > 0 && y - radius < height;
-    }
-  }, {
-    key: '_draw',
-    value: function _draw(ctx) {
-      ctx.beginPath();
-      ctx.fillStyle = this.rgba.toString();
-      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
-      ctx.fill();
-      ctx.closePath();
-    }
-  }]);
-
-  return Circle;
-}(_Body3.default);
-
-exports.default = Circle;
-},{"./Body":1}],4:[function(require,module,exports){
+},{"./Bubble":2,"lodash.debounce":11}],4:[function(require,module,exports){
+arguments[4][2][0].apply(exports,arguments)
+},{"./Body":1,"dup":2}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -359,8 +418,8 @@ var EventEmitter = function () {
 }();
 
 exports.default = EventEmitter;
-},{}],5:[function(require,module,exports){
-"use strict";
+},{}],6:[function(require,module,exports){
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -372,6 +431,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var cache = window.cache = {};
+
+var maybeHex = function maybeHex(color) {
+  return color.charAt(0) === '#';
+};
+var maybeRgb = function maybeRgb(color) {
+  return color.substr(0, 3) === 'rgb';
+};
+
 var RGBA = function () {
   function RGBA(color, opacity) {
     _classCallCheck(this, RGBA);
@@ -381,48 +449,66 @@ var RGBA = function () {
   }
 
   _createClass(RGBA, [{
-    key: "setColor",
+    key: 'setColor',
     value: function setColor(color) {
       _extends(this, this.parseColor(color));
     }
   }, {
-    key: "toString",
+    key: 'toString',
     value: function toString() {
-      return "rgba(" + this.r + ", " + this.g + ", " + this.b + ", " + this.opacity + ")";
+      return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + this.opacity + ')';
     }
   }, {
-    key: "parseColor",
+    key: 'parseColor',
     value: function parseColor(color) {
-      if (/^#/.test(color)) {
+      if (maybeHex(color)) {
         return this.parseHex(color);
-      } else {
+      }
+      if (maybeRgb(color)) {
         return this.parseRGB(color);
       }
+      throw new Error('Bubbles: could not parse color code: \'' + color + '\'');
     }
   }, {
-    key: "parseRGB",
+    key: 'parseRGB',
     value: function parseRGB(color) {
-      // TODO
+      if (cache[color]) return cache[color];
+
+      var matches = /^rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})/.exec(color);
+      if (matches) {
+        var ret = {
+          r: parseInt(matches[1], 10),
+          g: parseInt(matches[2], 10),
+          b: parseInt(matches[3], 10)
+        };
+        cache[color] = ret;
+        return ret;
+      }
+      throw new Error('Bubbles: could not parse rgb/rgba color code: \'' + color + '\'');
     }
   }, {
-    key: "parseHex",
+    key: 'parseHex',
     value: function parseHex(hex) {
-      // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+      if (cache[hex]) return cache[hex];
+
+      // Based off Tim Down's solution on stackoverflow
+      // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
       var shortReg = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
       hex = hex.replace(shortReg, function (m, r, g, b) {
         return r + r + g + g + b + b;
       });
 
       var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      } : {
-        r: 255,
-        g: 255,
-        b: 255
-      };
+      if (result) {
+        var ret = {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16)
+        };
+        cache[hex] = ret;
+        return ret;
+      }
+      throw new Error('Bubbles: could not parse hex color code: \'' + hex + '\'');
     }
   }]);
 
@@ -430,7 +516,12 @@ var RGBA = function () {
 }();
 
 exports.default = RGBA;
-},{}],6:[function(require,module,exports){
+
+
+RGBA.clearCache = function () {
+  cache = {};
+};
+},{}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -480,18 +571,6 @@ var World = function (_EventEmitter) {
       height: {
         get: function get() {
           return _this.canvas.height;
-        },
-        enumerable: true
-      },
-      halfWidth: {
-        get: function get() {
-          return _this.width / 2;
-        },
-        enumerable: true
-      },
-      halfHeight: {
-        get: function get() {
-          return _this.height / 2;
         },
         enumerable: true
       }
@@ -573,7 +652,7 @@ var World = function (_EventEmitter) {
 }(_events.EventEmitter);
 
 exports.default = World;
-},{"events":9,"raf":12}],7:[function(require,module,exports){
+},{"events":10,"raf":14}],8:[function(require,module,exports){
 'use strict';
 
 var _index = require('./index');
@@ -582,8 +661,8 @@ var _index2 = _interopRequireDefault(_index);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-window.bubbles = _index2.default;
-},{"./index":8}],8:[function(require,module,exports){
+window.canvasBubbles = _index2.default;
+},{"./index":9}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -609,7 +688,7 @@ function bubbles(canvas) {
   world.start();
   return bubbles;
 }
-},{"./Bubbles":2,"./World":6}],9:[function(require,module,exports){
+},{"./Bubbles":3,"./World":7}],10:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -913,7 +992,388 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+(function (global){
+/**
+ * lodash (Custom Build) <https://lodash.com/>
+ * Build: `lodash modularize exports="npm" -o ./`
+ * Copyright jQuery Foundation and other contributors <https://jquery.org/>
+ * Released under MIT license <https://lodash.com/license>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ */
+
+/** Used as the `TypeError` message for "Functions" methods. */
+var FUNC_ERROR_TEXT = 'Expected a function';
+
+/** Used as references for various `Number` constants. */
+var NAN = 0 / 0;
+
+/** `Object#toString` result references. */
+var symbolTag = '[object Symbol]';
+
+/** Used to match leading and trailing whitespace. */
+var reTrim = /^\s+|\s+$/g;
+
+/** Used to detect bad signed hexadecimal string values. */
+var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
+
+/** Used to detect binary string values. */
+var reIsBinary = /^0b[01]+$/i;
+
+/** Used to detect octal string values. */
+var reIsOctal = /^0o[0-7]+$/i;
+
+/** Built-in method references without a dependency on `root`. */
+var freeParseInt = parseInt;
+
+/** Detect free variable `global` from Node.js. */
+var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
+
+/** Detect free variable `self`. */
+var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+/** Used as a reference to the global object. */
+var root = freeGlobal || freeSelf || Function('return this')();
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objectToString = objectProto.toString;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max,
+    nativeMin = Math.min;
+
+/**
+ * Gets the timestamp of the number of milliseconds that have elapsed since
+ * the Unix epoch (1 January 1970 00:00:00 UTC).
+ *
+ * @static
+ * @memberOf _
+ * @since 2.4.0
+ * @category Date
+ * @returns {number} Returns the timestamp.
+ * @example
+ *
+ * _.defer(function(stamp) {
+ *   console.log(_.now() - stamp);
+ * }, _.now());
+ * // => Logs the number of milliseconds it took for the deferred invocation.
+ */
+var now = function() {
+  return root.Date.now();
+};
+
+/**
+ * Creates a debounced function that delays invoking `func` until after `wait`
+ * milliseconds have elapsed since the last time the debounced function was
+ * invoked. The debounced function comes with a `cancel` method to cancel
+ * delayed `func` invocations and a `flush` method to immediately invoke them.
+ * Provide `options` to indicate whether `func` should be invoked on the
+ * leading and/or trailing edge of the `wait` timeout. The `func` is invoked
+ * with the last arguments provided to the debounced function. Subsequent
+ * calls to the debounced function return the result of the last `func`
+ * invocation.
+ *
+ * **Note:** If `leading` and `trailing` options are `true`, `func` is
+ * invoked on the trailing edge of the timeout only if the debounced function
+ * is invoked more than once during the `wait` timeout.
+ *
+ * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
+ * until to the next tick, similar to `setTimeout` with a timeout of `0`.
+ *
+ * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
+ * for details over the differences between `_.debounce` and `_.throttle`.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Function
+ * @param {Function} func The function to debounce.
+ * @param {number} [wait=0] The number of milliseconds to delay.
+ * @param {Object} [options={}] The options object.
+ * @param {boolean} [options.leading=false]
+ *  Specify invoking on the leading edge of the timeout.
+ * @param {number} [options.maxWait]
+ *  The maximum time `func` is allowed to be delayed before it's invoked.
+ * @param {boolean} [options.trailing=true]
+ *  Specify invoking on the trailing edge of the timeout.
+ * @returns {Function} Returns the new debounced function.
+ * @example
+ *
+ * // Avoid costly calculations while the window size is in flux.
+ * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
+ *
+ * // Invoke `sendMail` when clicked, debouncing subsequent calls.
+ * jQuery(element).on('click', _.debounce(sendMail, 300, {
+ *   'leading': true,
+ *   'trailing': false
+ * }));
+ *
+ * // Ensure `batchLog` is invoked once after 1 second of debounced calls.
+ * var debounced = _.debounce(batchLog, 250, { 'maxWait': 1000 });
+ * var source = new EventSource('/stream');
+ * jQuery(source).on('message', debounced);
+ *
+ * // Cancel the trailing debounced invocation.
+ * jQuery(window).on('popstate', debounced.cancel);
+ */
+function debounce(func, wait, options) {
+  var lastArgs,
+      lastThis,
+      maxWait,
+      result,
+      timerId,
+      lastCallTime,
+      lastInvokeTime = 0,
+      leading = false,
+      maxing = false,
+      trailing = true;
+
+  if (typeof func != 'function') {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  wait = toNumber(wait) || 0;
+  if (isObject(options)) {
+    leading = !!options.leading;
+    maxing = 'maxWait' in options;
+    maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
+    trailing = 'trailing' in options ? !!options.trailing : trailing;
+  }
+
+  function invokeFunc(time) {
+    var args = lastArgs,
+        thisArg = lastThis;
+
+    lastArgs = lastThis = undefined;
+    lastInvokeTime = time;
+    result = func.apply(thisArg, args);
+    return result;
+  }
+
+  function leadingEdge(time) {
+    // Reset any `maxWait` timer.
+    lastInvokeTime = time;
+    // Start the timer for the trailing edge.
+    timerId = setTimeout(timerExpired, wait);
+    // Invoke the leading edge.
+    return leading ? invokeFunc(time) : result;
+  }
+
+  function remainingWait(time) {
+    var timeSinceLastCall = time - lastCallTime,
+        timeSinceLastInvoke = time - lastInvokeTime,
+        result = wait - timeSinceLastCall;
+
+    return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
+  }
+
+  function shouldInvoke(time) {
+    var timeSinceLastCall = time - lastCallTime,
+        timeSinceLastInvoke = time - lastInvokeTime;
+
+    // Either this is the first call, activity has stopped and we're at the
+    // trailing edge, the system time has gone backwards and we're treating
+    // it as the trailing edge, or we've hit the `maxWait` limit.
+    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
+  }
+
+  function timerExpired() {
+    var time = now();
+    if (shouldInvoke(time)) {
+      return trailingEdge(time);
+    }
+    // Restart the timer.
+    timerId = setTimeout(timerExpired, remainingWait(time));
+  }
+
+  function trailingEdge(time) {
+    timerId = undefined;
+
+    // Only invoke if we have `lastArgs` which means `func` has been
+    // debounced at least once.
+    if (trailing && lastArgs) {
+      return invokeFunc(time);
+    }
+    lastArgs = lastThis = undefined;
+    return result;
+  }
+
+  function cancel() {
+    if (timerId !== undefined) {
+      clearTimeout(timerId);
+    }
+    lastInvokeTime = 0;
+    lastArgs = lastCallTime = lastThis = timerId = undefined;
+  }
+
+  function flush() {
+    return timerId === undefined ? result : trailingEdge(now());
+  }
+
+  function debounced() {
+    var time = now(),
+        isInvoking = shouldInvoke(time);
+
+    lastArgs = arguments;
+    lastThis = this;
+    lastCallTime = time;
+
+    if (isInvoking) {
+      if (timerId === undefined) {
+        return leadingEdge(lastCallTime);
+      }
+      if (maxing) {
+        // Handle invocations in a tight loop.
+        timerId = setTimeout(timerExpired, wait);
+        return invokeFunc(lastCallTime);
+      }
+    }
+    if (timerId === undefined) {
+      timerId = setTimeout(timerExpired, wait);
+    }
+    return result;
+  }
+  debounced.cancel = cancel;
+  debounced.flush = flush;
+  return debounced;
+}
+
+/**
+ * Checks if `value` is the
+ * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
+ * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(_.noop);
+ * // => true
+ *
+ * _.isObject(null);
+ * // => false
+ */
+function isObject(value) {
+  var type = typeof value;
+  return !!value && (type == 'object' || type == 'function');
+}
+
+/**
+ * Checks if `value` is object-like. A value is object-like if it's not `null`
+ * and has a `typeof` result of "object".
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ * @example
+ *
+ * _.isObjectLike({});
+ * // => true
+ *
+ * _.isObjectLike([1, 2, 3]);
+ * // => true
+ *
+ * _.isObjectLike(_.noop);
+ * // => false
+ *
+ * _.isObjectLike(null);
+ * // => false
+ */
+function isObjectLike(value) {
+  return !!value && typeof value == 'object';
+}
+
+/**
+ * Checks if `value` is classified as a `Symbol` primitive or object.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
+ * @example
+ *
+ * _.isSymbol(Symbol.iterator);
+ * // => true
+ *
+ * _.isSymbol('abc');
+ * // => false
+ */
+function isSymbol(value) {
+  return typeof value == 'symbol' ||
+    (isObjectLike(value) && objectToString.call(value) == symbolTag);
+}
+
+/**
+ * Converts `value` to a number.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to process.
+ * @returns {number} Returns the number.
+ * @example
+ *
+ * _.toNumber(3.2);
+ * // => 3.2
+ *
+ * _.toNumber(Number.MIN_VALUE);
+ * // => 5e-324
+ *
+ * _.toNumber(Infinity);
+ * // => Infinity
+ *
+ * _.toNumber('3.2');
+ * // => 3.2
+ */
+function toNumber(value) {
+  if (typeof value == 'number') {
+    return value;
+  }
+  if (isSymbol(value)) {
+    return NAN;
+  }
+  if (isObject(value)) {
+    var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
+    value = isObject(other) ? (other + '') : other;
+  }
+  if (typeof value != 'string') {
+    return value === 0 ? value : +value;
+  }
+  value = value.replace(reTrim, '');
+  var isBinary = reIsBinary.test(value);
+  return (isBinary || reIsOctal.test(value))
+    ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
+    : (reIsBadHex.test(value) ? NAN : +value);
+}
+
+module.exports = debounce;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],12:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -949,7 +1409,7 @@ function isUndefined(arg) {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":11}],11:[function(require,module,exports){
+},{"_process":13}],13:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -1131,7 +1591,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (global){
 var now = require('performance-now')
   , root = typeof window === 'undefined' ? global : window
@@ -1207,4 +1667,4 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"performance-now":10}]},{},[1,7,2,3,4,8,5,6]);
+},{"performance-now":12}]},{},[1,8,2,3,4,5,9,6,7]);

@@ -1,17 +1,30 @@
 <!doctype html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="./styles.css" />
+  <title>Canvas Bubbles</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <canvas id="canvas"></canvas>
+  <div class="container">
+    <h1 class="title">Canvas Bubbles</h2>
+  </div>
+
   <script src="./canvas-bubbles.js"></script>
   <script>
     var canvas = document.querySelector('#canvas')
-    var myBubbles = bubbles(canvas, {
+    var bubbles = canvasBubbles(canvas, {
       colors: ['#fff'],
-      density: .2
+      density: 0.2,
+      minRadius: 5,
+      maxRadius: 50,
+      minVelocity: 0.001,
+      maxVelocity: 7,
+      minOpacityVelocity: 0.001,
+      maxOpacityVelocity: 0.01,
+      initialOpacity: 0.7
     })
   </script>
 </body>
