@@ -1,2 +1,2 @@
 import bubbles from './index'
-window.bubbles = bubbles
+window.canvasBubbles = bubbles
