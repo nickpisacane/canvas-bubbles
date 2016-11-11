@@ -1,9 +1,11 @@
 import Body from './Body'
 
-export default class Circle extends Body {
+export default class Bubble extends Body {
   constructor (options = {}) {
     super(options)
     this.radius = options.radius
+    this.velocity = 0
+    this.opacityVelocity = 0
   }
 
   _shouldDraw () {
